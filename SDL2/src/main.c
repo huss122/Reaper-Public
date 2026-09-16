@@ -414,7 +414,7 @@ static void drawLobbyScreen(SDL_Renderer* renderer,
             (int)(835 * sy + 18),
             connected[0] ? red : gray);
 
-        // Beräkna antal anslutna för instruktionstexten
+       
         int connectedCount = 0;
         for (int i = 0; i < 4; i++) { // 4 = Reaper + 3 Survivors
             if (connected[i]) connectedCount++;
@@ -633,14 +633,14 @@ void drawLocalVisionMask(SDL_Renderer* renderer, SDL_Texture* visionTex,
     int cy = (int)roundf((player_center_y(viewer) - camera.y) * zoom);
     int r  = (int)roundf(player_vision_radius(viewer) * zoom);
 
-    /* 1) Mörka hela området ovanför och under syncirkeln. */
+    
     SDL_Rect top = {0, 0, screenW, cy - r};
     SDL_Rect bottom = {0, cy + r, screenW, screenH - (cy + r)};
 
     if (top.h > 0) SDL_RenderFillRect(renderer, &top);
     if (bottom.y < screenH && bottom.h > 0) SDL_RenderFillRect(renderer, &bottom);
 
-    /* 2) Mörka området till vänster/höger om cirkeln rad för rad.  */
+    
     int yStart = cy - r;
     int yEnd   = cy + r;
     if (yStart < 0) yStart = 0;
@@ -742,17 +742,8 @@ int main(int argc, char** argv)
 
     /* ──────────────────────────────────────────────────────────────────────
      * E. LÖS UPP SERVERADRESSEN
-     *
-     * SDLNet_ResolveHost() omvandlar ett värdnamn/IP-sträng och ett
-     * portnummer till en IPaddress-struct (host + port i nätverksbyteordning).
-     *
      * Ändra "127.0.0.1" till serverns faktiska LAN-IP om servern
-     * inte kör på samma dator.  
-     *
-     * ⚠️  VANLIGT MISSTAG: Alla klientdatorer måste ha SERVERNS IP här,
-     * inte sin egen.  Serverdatorn kan ha 127.0.0.1 om den både kör
-     * servern och spelar som klient, men annars ska den också använda
-     * serverns LAN-IP.
+     * inte kör på samma dator.   
      * ────────────────────────────────────────────────────────────────────── */
     IPaddress serverAddr;
     if (SDLNet_ResolveHost(&serverAddr, "172.20.10.12", SERVER_PORT) == -1) {
@@ -861,13 +852,7 @@ int main(int argc, char** argv)
     while (isRunning)
     {
         /* ────────────────────────────────────────────────────────────────
-         * DELTA TIME
-         *
-         * deltaTime = sekunder sedan förra bildrutan.
-         * Multiplikation med deltaTime gör rörelsen frame-rate-oberoende:
-         *   pixel/frame → pixel/sekund
-         * Vi begränsar till 50 ms (20 fps minimum) för att undvika
-         * stora hopp vid laggar eller breakpoints.
+         * DELTA TIME     
          * ──────────────────────────────────────────────────────────────── */
         if (lastTick == 0) lastTick = SDL_GetTicks();
         Uint32 currentTick = SDL_GetTicks();
@@ -1074,7 +1059,7 @@ int main(int argc, char** argv)
                         stepsPlaying = true;
                     }
                 } else {
-                    /* Spelaren rör sig inte – stoppa direkt */
+                    
                     if (stepsPlaying) {
                         Mix_HaltChannel(SFX_CHANNEL_STEPS);
                         stepsPlaying = false;
@@ -1197,7 +1182,7 @@ int main(int argc, char** argv)
             }
 
             /* ────────────────────────────────────────────────────────────
-             * 4. SKICKA EGET PAKET TILL SERVERN (~60 Hz)
+             * 4. (~60 Hz)
              * ──────────────────────────────────────────────────────────── */
             Uint32 now = SDL_GetTicks();
             if (now - lastSendTime > 16) {
@@ -1254,8 +1239,7 @@ int main(int argc, char** argv)
 
                     /* Uppdatera reaperns attack-animation på andra klienter */
                     if (i == 0) {
-                        /* Om servern säger att reapern attackerar men vi
-                         * inte visste om det lokalt, starta animationen */
+                       
                         if (gs.players[0].is_attacking && !players[0].is_attacking) {
                             players[0].current_frame = 0;
                         }
@@ -1443,8 +1427,7 @@ int main(int argc, char** argv)
                 SDL_Rect     srcRect = {0};
                 int          drawSize = 78;
 
-                /* Rita alltid dig själv, men dölj andra om de är utanför
-                   din nuvarande spelares synfält.  */
+                
                 if (i != MY_ID && p != viewPlayer && !player_can_see(viewPlayer, p)) {
                     continue;
                 }
@@ -1489,18 +1472,18 @@ int main(int argc, char** argv)
                     SDL_RenderCopyEx(renderer, tex, &srcRect, &playerDest, 0, NULL, flipFlag);
                     if (players[i].is_opening_chest) 
                     {
-                        // Positionera mätaren ovanför spelarens huvud
+                        
                         int barW = 40;
                         int barH = 6;
                         int barX = (int)players[i].x - camera.x + (players[i].w / 2) - (barW / 2);
                         int barY = (int)players[i].y - camera.y - 30; //30 pixlar över huvudet
 
-                        // Rita bakgrund (Mörkgrå)
+                       
                         SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
                         SDL_Rect bgRect = { barX, barY, barW, barH };
                         SDL_RenderFillRect(renderer, &bgRect);
 
-                        // Rita framsteg (Grön)
+                       
                         float progress = players[i].chest_timer / 10.0f;
                         if (progress > 1.0f) progress = 1.0f;
                         
@@ -1508,11 +1491,11 @@ int main(int argc, char** argv)
                         SDL_Rect progressRect = { barX, barY, (int)(barW * progress), barH };
                         SDL_RenderFillRect(renderer, &progressRect);
 
-                        // Rita en vit ram
+                        
                         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                         SDL_RenderDrawRect(renderer, &bgRect);
                         
-                        // Glöm inte att återställa färgen så att nästa debug-ritning inte blir vit
+                        
                         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); 
                     }
                 }
